@@ -1,0 +1,66 @@
+#!/bin/sh
+#assume make install was done to /Applications/PariGP.app
+#
+# using
+#export READLINE=--with-readline=/usr/local/Cellar/readline/6.2.4
+#export CC=/usr/local/bin/gcc-4.7
+#export PREFIX=--prefix=/Applications/PariGP.app/Contents/Resources
+#./Configure $READLINE $PREFIX
+
+
+# fix paths
+cd /Applications/PariGP.app/Contents/Resources
+
+## copy libraries
+cp -f /usr/local/Cellar/gcc/4.7.1/gcc/lib/libgcc_s.1.dylib lib/
+cp -f /usr/local/opt/readline/lib/libreadline.6.2.dylib lib/
+cp -f /usr/local/lib/libgmp.10.dylib lib/
+
+
+## on gp
+install_name_tool \
+  -change /usr/local/opt/readline/lib/libreadline.6.2.dylib \
+  /Applications/PariGP.app/Contents/Resources/lib/libreadline.6.2.dylib \
+  bin/gp
+install_name_tool \
+  -change /usr/local/Cellar/gcc/4.7.1/gcc/lib/libgcc_s.1.dylib \
+  /Applications/PariGP.app/Contents/Resources/lib/libgcc_s.1.dylib \
+  bin/gp
+## on libpari
+install_name_tool \
+  -change /usr/local/Cellar/gcc/4.7.1/gcc/lib/libgcc_s.1.dylib \
+  /Applications/PariGP.app/Contents/Resources/lib/libgcc_s.1.dylib \
+  lib/libpari-gmp.dylib
+install_name_tool \
+  -change /usr/local/lib/libgmp.10.dylib \
+  /Applications/PariGP.app/Contents/Resources/lib/libgmp.10.dylib \
+  lib/libpari-gmp.dylib
+## on libgmp
+chmod +w lib/libgmp.10.dylib
+install_name_tool \
+  -id /Applications/PariGP.app/Contents/Resources/lib/libgmp.10.dylib \
+  lib/libgmp.10.dylib
+#install_name_tool \
+#  -change /usr/local/lib/libgmp.10.dylib \
+#  /Applications/PariGP.app/Contents/Resources/lib/libgmp.10.dylib \
+#  lib/libgmp.10.dylib
+## on libgcc
+install_name_tool \
+  -id /Applications/PariGP.app/Contents/Resources/lib/libgcc_s.1.dylib \
+  lib/libgcc_s.1.dylib
+## on libreadline
+chmod +w lib/libreadline.6.2.dylib
+install_name_tool \
+  -id /Applications/PariGP.app/Contents/Resources/lib/libreadline.6.2.dylib \
+  lib/libreadline.6.2.dylib
+  
+## back to devel
+cd $HOME/devel/gpOSX
+# run script
+mkdir -p /Applications/PariGP.app/Contents/MacOS
+cp files/GPrun.sh /Applications/PariGP.app/Contents/MacOS/PariGP 
+chmod +x /Applications/PariGP.app/Contents/MacOS/PariGP
+# Info.plist
+sed 's/VERSION/2.5.3/' files/Info.plist > /Applications/PariGP.app/Contents/Info.plist
+#Icons
+cp images/PariGP.icns /Applications/PariGP.app/Contents/Resources/

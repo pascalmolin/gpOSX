@@ -1,0 +1,25 @@
+#!/bin/sh
+#assume make install was done to /Applications/PariGP.app
+
+
+SIZE=20m
+rm -f pack.temp.dmg
+hdiutil create -srcfolder "/Applications/PariGP.app" -volname "PariGP" -fs HFS+ \
+    -fsargs "-c c=64,a=16,e=16" -format UDRW -size ${SIZE} pack.temp.dmg
+
+device=$(hdiutil attach -readwrite -noverify -noautoopen "pack.temp.dmg" | \
+           egrep '^/dev/' | sed 1q | awk '{print $1}')
+sleep 5
+
+dmgdir=/Volumes/PariGP
+mkdir -p ${dmgdir}/.background
+cp images/install.png ${dmgdir}/.background/install.png
+
+osascript files/installer.applescript
+
+chmod -Rf go-w /Volumes/PariGP
+sync
+sync
+hdiutil detach ${device}
+rm -f PariGP-2.5.3.dmg
+hdiutil convert "pack.temp.dmg" -format UDZO -imagekey zlib-level=9 -o PariGP-2.5.3
