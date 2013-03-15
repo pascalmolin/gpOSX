@@ -2,6 +2,7 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
+   xmlns:osb="http://www.openswatchbook.org/uri/2009/osb"
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -18,6 +19,14 @@
    sodipodi:docname="install.svg">
   <defs
      id="defs4">
+    <linearGradient
+       id="linearGradient3876"
+       osb:paint="solid">
+      <stop
+         style="stop-color:#bcccd5;stop-opacity:1;"
+         offset="0"
+         id="stop3878" />
+    </linearGradient>
     <filter
        inkscape:collect="always"
        id="filter3872"
@@ -27,6 +36,15 @@
          stdDeviation="0.51931015"
          id="feGaussianBlur3874" />
     </filter>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3876"
+       id="linearGradient3880"
+       x1="224.96971"
+       y1="238.15913"
+       x2="304.54495"
+       y2="238.15913"
+       gradientUnits="userSpaceOnUse" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -36,10 +54,10 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4189974"
-     inkscape:cx="108.9988"
+     inkscape:cx="97.241224"
      inkscape:cy="33.86649"
      inkscape:document-units="px"
-     inkscape:current-layer="layer2"
+     inkscape:current-layer="layer6"
      showgrid="false"
      inkscape:window-width="1613"
      inkscape:window-height="910"
@@ -63,7 +81,22 @@
     </rdf:RDF>
   </metadata>
   <g
-     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer6"
+     inkscape:label="white">
+    <rect
+       transform="translate(-56.09375,-113.84375)"
+       style="opacity:1;display:inline;fill:#ffffff;stroke:#000000;stroke-width:1.98111533999999989;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;fill-opacity:1"
+       id="install"
+       width="435.5188"
+       height="253.08072"
+       x="57.082558"
+       y="114.83265"
+       inkscape:export-xdpi="164.57143"
+       inkscape:export-ydpi="164.57143" />
+  </g>
+  <g
+     inkscape:label="ramanujan"
      inkscape:groupmode="layer"
      id="layer1"
      style="opacity:0.43103446;display:inline"
@@ -175,31 +208,58 @@
       <g
          id="g3211" />
     </g>
-    <rect
-       style="opacity:0.48155176;fill:none;stroke:#000000;stroke-width:1.98111534;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-       id="install"
-       width="435.5188"
-       height="253.08072"
-       x="57.082558"
-       y="114.83265"
-       inkscape:export-xdpi="123.42857"
-       inkscape:export-ydpi="123.42857" />
-    <path
-       style="fill:#4a65be;fill-opacity:1;stroke:#00005e;stroke-width:1;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:0.50222222;stroke-dasharray:none;stroke-dashoffset:8.87999871;filter:url(#filter3872)"
-       d="m 226.21605,224.76941 57.08256,0 20,13.38974 -20,13.38973 -57.08256,0 z"
-       id="rect3089"
-       inkscape:connector-curvature="0"
-       sodipodi:nodetypes="cccccc" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer3"
+     inkscape:label="dragdrop"
+     style="display:inline">
     <text
        xml:space="preserve"
-       style="font-size:22px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:'cursor.pcf'"
-       x="144.4682"
-       y="344.82037"
+       style="font-size:20px;font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;display:inline;font-family:Sans;-inkscape-font-specification:Sans Italic"
+       x="108.81142"
+       y="229.56717"
        id="text3876"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan3878"
-         x="144.4682"
-         y="344.82037">drag and drop to install</tspan></text>
+         x="108.81142"
+         y="229.56717">drag and drop to install</tspan></text>
+    <path
+       style="opacity:0.9353448;fill:url(#linearGradient3880);fill-opacity:1;stroke:none;display:inline;filter:url(#filter3872)"
+       d="m 226.21605,224.76941 57.08256,0 20,13.38974 -20,13.38973 -57.08256,0 z"
+       id="rect3089"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccc"
+       transform="translate(-56.09375,-113.84375)" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer5"
+     inkscape:label="arrow2"
+     style="display:inline">
+    <path
+       sodipodi:nodetypes="cccccc"
+       inkscape:connector-curvature="0"
+       id="path3882"
+       d="m 171.53175,112.33511 57.08256,0 20,13.38974 -20,13.38973 -57.08256,0 z"
+       style="opacity:0.34482763;fill:#0654d6;fill-opacity:1;stroke:none;display:inline;filter:url(#filter3872)" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer4"
+     inkscape:label="clickinstall"
+     style="display:none">
+    <text
+       xml:space="preserve"
+       style="font-size:22px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       x="105.70844"
+       y="233.92081"
+       id="text3104"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3106"
+         x="105.70844"
+         y="233.92081">double click to install</tspan></text>
   </g>
 </svg>

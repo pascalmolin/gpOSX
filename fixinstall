@@ -1,67 +1,101 @@
 #!/bin/sh
-#assume make install was done to /Applications/PariGP.app
+# fix paths in pari/GP install
+# and create OS X app
+
+# should not change this if want an app
+Name=PariGP
+AppRoot=/Applications/PariGP.app
+root=${AppRoot}/Contents/Resources
+
+
+VERSION=2.5.3
+GP=bin/gp
+LIBPARI=lib/libpari-gmp.dylib
+
 #
+# assume make install was done to ${ROOT}
 # using
-#export READLINE=--with-readline=/usr/local/Cellar/readline/6.2.4
-#export CC=/usr/local/bin/gcc-4.7
-#export PREFIX=--prefix=/Applications/PariGP.app/Contents/Resources
-#./Configure $READLINE $PREFIX
+# export READLINE=--with-readline=/usr/local/Cellar/readline/6.2.4
+# export PREFIX=--prefix=${ROOT}
+# export CC=/usr/local/bin/gcc-4.7
+# ./Configure $READLINE $PREFIX
+# make
+# make install
 
 #### fix install to embed all libraries
 
-# fix paths
-cd /Applications/PariGP.app/Contents/Resources
+LIBGCC=/usr/local/Cellar/gcc/4.7.1/gcc/lib/libgcc_s.1.dylib
+LIBRL=/usr/local/opt/readline/lib/libreadline.6.2.dylib
+LIBGMP=/usr/local/lib/libgmp.10.dylib
 
-## copy libraries
-cp -f /usr/local/Cellar/gcc/4.7.1/gcc/lib/libgcc_s.1.dylib lib/
-cp -f /usr/local/opt/readline/lib/libreadline.6.2.dylib lib/
-cp -f /usr/local/lib/libgmp.10.dylib lib/
+for lib in {$LIBGCC,$LIBRL,$LIBGMP}; do
+  newlib=lib/$(basename ${lib})
+  # copy library
+  cp -f ${lib} ${root}/${newlib}
+  # change name
+  chmod o+w ${root}/${newlib}
+  install_name_tool -id ${root}/${lib} ${root}/${newlib}
+done
+
+## fix lib path on gp
+for lib in {$LIBGCC,$LIBRL}; do
+  newlib=lib/$(basename ${lib})
+  install_name_tool -change ${lib} ${root}/${newlib} ${root}/${GP}
+done
+
+## fix paths on libpari
+for lib in {$LIBGCC,$LIBGMP}; do
+  newlib=lib/$(basename ${lib})
+  install_name_tool -change ${lib} ${root}/${newlib} ${root}/${LIBPARI}
+done
 
 
-## on gp
-install_name_tool \
-  -change /usr/local/opt/readline/lib/libreadline.6.2.dylib \
-  /Applications/PariGP.app/Contents/Resources/lib/libreadline.6.2.dylib \
-  bin/gp
-install_name_tool \
-  -change /usr/local/Cellar/gcc/4.7.1/gcc/lib/libgcc_s.1.dylib \
-  /Applications/PariGP.app/Contents/Resources/lib/libgcc_s.1.dylib \
-  bin/gp
-## on libpari
-install_name_tool \
-  -change /usr/local/Cellar/gcc/4.7.1/gcc/lib/libgcc_s.1.dylib \
-  /Applications/PariGP.app/Contents/Resources/lib/libgcc_s.1.dylib \
-  lib/libpari-gmp.dylib
-install_name_tool \
-  -change /usr/local/lib/libgmp.10.dylib \
-  /Applications/PariGP.app/Contents/Resources/lib/libgmp.10.dylib \
-  lib/libpari-gmp.dylib
-## on libgmp
-chmod +w lib/libgmp.10.dylib
-install_name_tool \
-  -id /Applications/PariGP.app/Contents/Resources/lib/libgmp.10.dylib \
-  lib/libgmp.10.dylib
-#install_name_tool \
-#  -change /usr/local/lib/libgmp.10.dylib \
-#  /Applications/PariGP.app/Contents/Resources/lib/libgmp.10.dylib \
-#  lib/libgmp.10.dylib
-## on libgcc
-install_name_tool \
-  -id /Applications/PariGP.app/Contents/Resources/lib/libgcc_s.1.dylib \
-  lib/libgcc_s.1.dylib
-## on libreadline
-chmod +w lib/libreadline.6.2.dylib
-install_name_tool \
-  -id /Applications/PariGP.app/Contents/Resources/lib/libreadline.6.2.dylib \
-  lib/libreadline.6.2.dylib
-  
-## back to devel
-cd $HOME/devel/gpOSX
-# run script
-mkdir -p /Applications/PariGP.app/Contents/MacOS
-cp files/GPrun.sh /Applications/PariGP.app/Contents/MacOS/PariGP 
-chmod +x /Applications/PariGP.app/Contents/MacOS/PariGP
+## check output to see missing libs
+otool -L ${root}/${GP}
+otool -L ${root}/${LIBPARI}
+
+## finish install : make os X app
+
+# launch script
+mkdir -p ${AppRoot}/Contents/MacOS
+cat <<EOF > ${AppRoot}/Contents/MacOS/${Name}
+#!/bin/sh
+open -a Terminal ${root}/${GP}
+EOF
+chmod +x ${AppRoot}/Contents/MacOS/${Name}
+
 # Info.plist
-sed 's/VERSION/2.5.3/' files/Info.plist > /Applications/PariGP.app/Contents/Info.plist
-#Icons
-cp images/PariGP.icns /Applications/PariGP.app/Contents/Resources/
+cat <<EOF > ${AppRoot}/Contents/Info.plist
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" 
+                       "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>${Name}</string>
+    <key>CFBundleIdentifier</key>
+    <string>math.PariGP</string>
+    <key>CFBundleName</key>
+    <string>PariGP</string>
+    <key>CFBundleIconFile</key>
+    <string>PariGP.icns</string>
+    <key>CFBundleShortVersionString</key>
+    <string>${VERSION}</string>
+    <key>CFBundleSignature</key>
+    <string>pari</string>
+    <key>CFBundleVersion</key>
+    <string>${VERSION}</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+  </dict>
+</plist>
+EOF
+# Icons
+iconfile=images/PariGP.icns
+if [ -f ${iconfile} ]; then
+  cp -f ${iconfile} ${AppRoot}/Contents/Resources/PariGP.icns
+fi
+
+echo "Done. can now make dmg"

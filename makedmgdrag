@@ -1,0 +1,156 @@
+#!/bin/sh
+# make a .dmg to drag and drop
+
+# options
+BG=0 # do not set background image
+type="drag" # or "installer"
+
+if [ $# -ne 3 ]; then
+  cat <<EOS
+  USAGE:
+    $0 <name> <dir> <target>
+    makes a dmg image of <dir> named <name>.dmg to
+    drag and drop into directory <target>
+
+  EXAMPLE:
+
+    $0 PariGP-2.5.3 /Applications/PariGP.app /Applications
+    
+EOS
+  exit 1
+fi
+
+DMG=$1
+# directory to install
+FROM=$2
+# target
+TO=$3
+
+if [ ! -e ${FROM} ]; then
+  echo "error: no such files ${FROM}"
+  exit 1
+fi
+
+# optional step 0: create install script
+if [ ${type} -q "installer" ]; then
+  ROOT=Install.app
+  echo "0. create ${ROOT}"
+  
+  rm -rf ${ROOT}
+  cat <<-EOF | osacompile -o ${ROOT}
+  try
+    set dmgpath to POSIX path of (path to resource "${NAME}") 
+    -- go around stupid cp -R behaviour
+    if dmgpath ends with "/" then
+      set dmgpath to text 1 thru -2 of dmgpath
+    end if
+    -- do shell script "cp -R " & quoted form of dmgpath & " ${TO}" with administrator privileges
+    do shell script "cp -R " & quoted form of dmgpath & " ${TO}"
+    tell me to activate
+    display dialog "${NAME} successfully installed." buttons {"OK"} default button 1 with title "Install ${NAME}" with icon note
+  on error
+    tell me to activate
+    display dialog "You can do manually cp -R " & dmgpath & "
+    ${TO}" & return buttons {"OK"} default button 1 with title "Error installing ${NAME}" with icon 0
+  end try
+  EOF
+  
+  # add the data inside
+  RESOURCES=${ROOT}/Contents/Resources
+  echo "0.1 add data from ${FROM}"
+  cp -r ${FROM} ${RESOURCES}/
+  
+  # also change the icon for Pari
+  cp -f images/PariGP.icns ${RESOURCES}/applet.icns
+else
+  ROOT=${FROM}
+fi
+
+
+# FROM can be put into a nice dmg
+
+# temporary dmg
+
+SIZE=$(du -ms ${ROOT} | awk '{print (int($1*1.3)+5)}') # get size + extra
+TMPDMG=${DMG}.tmp.dmg
+VOLUME="${DMG}"
+
+echo "1. embed into ${TMPDMG} of size ${SIZE}"
+rm -f ${TMPDMG}
+hdiutil create -srcfolder "${ROOT}" \
+  -volname "${VOLUME}" -fs HFS+ -fsargs "-c c=64,a=16,e=16" \
+  -format UDRW -size "${SIZE}m" ${TMPDMG}
+
+sleep 5
+
+## add background and turn into a nice installer
+
+MOUNTED=/Volumes/${VOLUME}
+echo "2. mount into ${MOUNTED} and set finder window"
+
+if [ -e ${MOUNTED} ]; then
+  echo "error: disk ${MOUNTED} in use."
+  exit 1;
+fi
+
+device=$(hdiutil attach -readwrite -noverify -noautoopen "${TMPDMG}" | \
+             egrep '^/dev/' | sed 1q | awk '{print $1}')
+sleep 1
+
+if [ ${BG} -ne 0 ]; then
+  mkdir -p ${MOUNTED}/.background
+  cp images/install_drag.png ${MOUNTED}/.background/install.png
+  bcom=""
+else
+  bcom="-- "
+fi
+if [ ${type} -q "installer" ]; then
+  dcom="-- "
+  icom=""
+else
+  dcom=""
+  icom="-- "
+else
+fi
+LabelTo=$(basename ${TO})
+LabelFrom=$(basename ${ROOT})
+
+cat <<EOF | osascript
+tell application "Finder"
+     tell disk "${VOLUME}"
+           open
+           set current view of container window to icon view
+           set toolbar visible of container window to false
+           set statusbar visible of container window to false
+           set the bounds of container window to {400, 100, 800, 333}
+           set theViewOptions to the icon view options of container window
+           set arrangement of theViewOptions to not arranged
+           set icon size of theViewOptions to 72
+           ${bcom}set background picture of theViewOptions to file ".background:install.png"
+           ${icom}set position of item "${LabelFrom}" of container window to {200, 110}
+           ${dcom}set position of item "${LabelFrom}" of container window to {80, 110}
+           ${dcom}make new alias file at container window to POSIX file "${TO}" with properties {name:"${LabelTo}"}
+           ${dcom}set position of item "${LabelTo}" of container window to {320, 110}
+           update without registering applications
+           delay 5
+           -- eject
+     end tell
+   end tell
+EOF
+
+sudo rm -rf ${MOUNTED}/.Trashes
+sudo rm -rf ${MOUNTED}/.fseventsd
+chmod -Rf go-w ${MOUNTED}
+sync
+sync
+
+sleep 3 # Finder may need time
+
+## final dmg
+echo "3. unmount and compress into into final ${DMG}"
+
+hdiutil detach ${device}
+rm -f ${DMG}.dmg
+hdiutil convert "${TMPDMG}" -format UDZO -imagekey zlib-level=9 -o ${DMG}
+
+echo "Build complete."
