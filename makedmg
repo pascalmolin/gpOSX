@@ -6,6 +6,7 @@
 # options
 BG=0 # do not set background image
 type="drag" # or "installer"
+iconfile=images/PariGP.icns
 
 args=$(getopt ib: $*)
 set -- $args
@@ -52,8 +53,6 @@ EOS
   exit 1
 fi
 
-echo $@
-
 DMG=$1
 # directory to install
 FROM=$2
@@ -65,7 +64,15 @@ if [ ! -e ${FROM} ]; then
   exit 1
 fi
 
-exit 0
+LabelFrom=$(basename ${FROM})
+LabelTo=$(basename ${TO})
+TMPDMG=${DMG}.tmp.dmg
+VOLUME="${DMG}"
+MOUNTED=/Volumes/${VOLUME}
+if [ -e ${MOUNTED} ]; then
+  echo "error: mount point ${MOUNTED} already used."
+  exit 1;
+fi
 
 # optional step 0: create install script
 if [ ${type} = "installer" ]; then
@@ -75,7 +82,7 @@ if [ ${type} = "installer" ]; then
   rm -rf ${ROOT}
   cat <<-EOF | osacompile -o ${ROOT}
   try
-    set dmgpath to POSIX path of (path to resource "${NAME}") 
+  set dmgpath to POSIX path of (path to resource "${LabelFrom}") 
     -- go around stupid cp -R behaviour
     if dmgpath ends with "/" then
       set dmgpath to text 1 thru -2 of dmgpath
@@ -83,33 +90,34 @@ if [ ${type} = "installer" ]; then
     -- do shell script "cp -R " & quoted form of dmgpath & " ${TO}" with administrator privileges
     do shell script "cp -R " & quoted form of dmgpath & " ${TO}"
     tell me to activate
-    display dialog "${NAME} successfully installed." buttons {"OK"} default button 1 with title "Install ${NAME}" with icon note
+    display dialog "${LabelFrom} successfully installed." buttons {"OK"} default button 1 with title "Install ${LabeFrom}" with icon note
   on error
     tell me to activate
     display dialog "You can do manually cp -R " & dmgpath & "
-    ${TO}" & return buttons {"OK"} default button 1 with title "Error installing ${NAME}" with icon 0
+    ${TO}" & return buttons {"OK"} default button 1 with title "Error installing ${LabelFrom}" with icon 0
   end try
-  EOF
+EOF
   
   # add the data inside
   RESOURCES=${ROOT}/Contents/Resources
   echo "0.1 add data from ${FROM}"
   cp -r ${FROM} ${RESOURCES}/
   
-  # also change the icon for Pari
-  cp -f images/PariGP.icns ${RESOURCES}/applet.icns
+  if [ -e ${iconfile} ]; then
+    # also change the icon for Pari
+    cp -f ${iconfile} ${RESOURCES}/applet.icns
+  fi
+
+  LabelFrom=Install.app
+
 else
   ROOT=${FROM}
 fi
 
 
-# FROM can be put into a nice dmg
-
-# temporary dmg
+# make temporary dmg
 
 SIZE=$(du -ms ${ROOT} | awk '{print (int($1*1.3)+5)}') # get size + extra
-TMPDMG=${DMG}.tmp.dmg
-VOLUME="${DMG}"
 
 echo "1. embed into ${TMPDMG} of size ${SIZE}"
 rm -f ${TMPDMG}
@@ -117,17 +125,11 @@ hdiutil create -srcfolder "${ROOT}" \
   -volname "${VOLUME}" -fs HFS+ -fsargs "-c c=64,a=16,e=16" \
   -format UDRW -size "${SIZE}m" ${TMPDMG}
 
-sleep 5
+sleep 2
 
-## add background and turn into a nice installer
+## turn into finder window installer
 
-MOUNTED=/Volumes/${VOLUME}
 echo "2. mount into ${MOUNTED} and set finder window"
-
-if [ -e ${MOUNTED} ]; then
-  echo "error: disk ${MOUNTED} in use."
-  exit 1;
-fi
 
 device=$(hdiutil attach -readwrite -noverify -noautoopen "${TMPDMG}" | \
              egrep '^/dev/' | sed 1q | awk '{print $1}')
@@ -146,10 +148,7 @@ if [ ${type} = "installer" ]; then
 else
   dcom=""
   icom="-- "
-else
 fi
-LabelTo=$(basename ${TO})
-LabelFrom=$(basename ${ROOT})
 
 cat <<EOF | osascript
 tell application "Finder"
@@ -174,8 +173,10 @@ tell application "Finder"
    end tell
 EOF
 
-sudo rm -rf ${MOUNTED}/.Trashes
-sudo rm -rf ${MOUNTED}/.fseventsd
+if [ -e ${MOUNTED}/.Trashes ] || [ -e ${MOUNTED}/.fseventsd ]; then
+  echo "Need to remove Spotlight folders with admin privileges"
+  sudo rm -rf ${MOUNTED}/.Trashes ${MOUNTED}/.fseventsd
+fi
 chmod -Rf go-w ${MOUNTED}
 sync
 sync
@@ -188,5 +189,6 @@ echo "3. unmount and compress into into final ${DMG}"
 hdiutil detach ${device}
 rm -f ${DMG}.dmg
 hdiutil convert "${TMPDMG}" -format UDZO -imagekey zlib-level=9 -o ${DMG}
+rm -f ${TMPDMG}
 
 echo "Build complete."

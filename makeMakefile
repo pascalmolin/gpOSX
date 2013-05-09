@@ -1,0 +1,1 @@
+sed -n '/^\\begin{code}\[make\]/,/end{code}/p' description.tex | sed '/{code}/d' > Makefile

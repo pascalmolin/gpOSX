@@ -13,10 +13,10 @@ GP=bin/gp
 LIBPARI=lib/libpari-gmp.dylib
 
 #
-# assume make install was done to ${ROOT}
+# assume make install was done to ${root}
 # using
 # export READLINE=--with-readline=/usr/local/Cellar/readline/6.2.4
-# export PREFIX=--prefix=${ROOT}
+# export PREFIX=--prefix=${root}
 # export CC=/usr/local/bin/gcc-4.7
 # ./Configure $READLINE $PREFIX
 # make
@@ -33,7 +33,7 @@ for lib in {$LIBGCC,$LIBRL,$LIBGMP}; do
   # copy library
   cp -f ${lib} ${root}/${newlib}
   # change name
-  chmod o+w ${root}/${newlib}
+  chmod +w ${root}/${newlib}
   install_name_tool -id ${root}/${lib} ${root}/${newlib}
 done
 
