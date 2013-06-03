@@ -1,7 +1,5 @@
 #!/bin/sh
-# make a .dmg to 
-# either drag and drop
-# or run install script
+# make a .dmg to either drag and drop or run install script
 
 # options
 BG=0 # do not set background image
@@ -43,12 +41,8 @@ if [ $# -ne 3 ]; then
        bgimage.png _must_ be a 400x233 png at 72dpi.
 
   EXAMPLE:
-
     $0 PariGP-2.5.3 /Applications/PariGP.app /Applications
-
     $0 -i elldata data/elldata /usr/local/share/pari/
-
-    
 EOS
   exit 1
 fi
@@ -152,30 +146,30 @@ fi
 
 cat <<EOF | osascript
 tell application "Finder"
-     tell disk "${VOLUME}"
-           open
-           set current view of container window to icon view
-           set toolbar visible of container window to false
-           set statusbar visible of container window to false
-           set the bounds of container window to {400, 100, 800, 333}
-           set theViewOptions to the icon view options of container window
-           set arrangement of theViewOptions to not arranged
-           set icon size of theViewOptions to 72
-           ${bcom}set background picture of theViewOptions to file ".background:install.png"
-           ${icom}set position of item "${LabelFrom}" of container window to {200, 110}
-           ${dcom}set position of item "${LabelFrom}" of container window to {80, 110}
-           ${dcom}make new alias file at container window to POSIX file "${TO}" with properties {name:"${LabelTo}"}
-           ${dcom}set position of item "${LabelTo}" of container window to {320, 110}
-           update without registering applications
-           delay 5
-           -- eject
-     end tell
-   end tell
+  tell disk "${VOLUME}"
+    open
+    set current view of container window to icon view
+    set toolbar visible of container window to false
+    set statusbar visible of container window to false
+    set the bounds of container window to {400, 100, 800, 333}
+    set theViewOptions to the icon view options of container window
+    set arrangement of theViewOptions to not arranged
+    set icon size of theViewOptions to 72
+    ${bcom}set background picture of theViewOptions to file ".background:install.png"
+    ${icom}set position of item "${LabelFrom}" of container window to {200, 110}
+    ${dcom}set position of item "${LabelFrom}" of container window to {80, 110}
+    ${dcom}make new alias file at container window to POSIX file "${TO}" with properties {name:"${LabelTo}"}
+    ${dcom}set position of item "${LabelTo}" of container window to {320, 110}
+    update without registering applications
+    delay 5
+    -- eject
+  end tell
+end tell
 EOF
 
 if [ -e ${MOUNTED}/.Trashes ] || [ -e ${MOUNTED}/.fseventsd ]; then
-  echo "Need to remove Spotlight folders with admin privileges"
-  sudo rm -rf ${MOUNTED}/.Trashes ${MOUNTED}/.fseventsd
+  chmod 755 ${MOUNTED}/.Trashes; rm -rf ${MOUNTED}/.Trashes;
+  rm -rf ${MOUNTED}/.fseventsd
 fi
 chmod -Rf go-w ${MOUNTED}
 sync
