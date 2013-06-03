@@ -1,7 +1,7 @@
 #!/bin/sh
 CLEAN=0
-Build=$HOME/pari
-export CC=gcc-mp-4.7
+Build=$HOME/devel/pari
+export CC=/usr/local/bin/gcc-4.7
 case $1 in 
   -a) AllPackages=1; Name=PariGP;;
    *) Name=PariGP-Tiny;;
@@ -13,9 +13,9 @@ cd ${Build}
 VERSION=$VersionMajor.$VersionMinor.$patch
 
 # compile static version of pari for OSX
-LIBREADLINE=/opt/local/lib/libreadline.a
-LIBNCURSES=/opt/local/lib/libncurses.a
-LIBGMP=/opt/local/lib/libgmp.a
+LIBREADLINE=/usr/local/Cellar/readline/6.2.4/lib/libreadline.a
+LIBNCURSES=/usr/local/Cellar/ncurses/5.9/lib/libncursesw.a
+LIBGMP=/usr/local/Cellar/gmp/5.0.5/lib/libgmp.a
 
 export LDFLAGS=-static-libgcc
 
@@ -65,11 +65,13 @@ fi
 mkdir -p ${Rundir}
 cat <<EOF > ${Rundir}/${Name}
 #!/bin/sh
+#ROOT="\$(cd "\$(dirname "\$0")" 2>/dev/null && pwd)/../Resources"
 ROOT="\`dirname \$0\`/../Resources"
 osascript <<EOS
 tell app "Terminal"
   do script "export GPDOCDIR=\${ROOT}/doc
     export GPHELP='\${ROOT}/doc/gphelp -d -ch 4 -cb 0 -cu 2'
+    #export GP_DATA_DIR=\${ROOT}/share/pari
     export GP_DATA_DIR=$GP_DATA_DIR
     clear; \${ROOT}/bin/gp; exit"
 end tell
@@ -111,6 +113,6 @@ if [ -f $iconfile ]; then
   cp -f $iconfile $AppRoot/Contents/Resources/PariGP.icns
 fi
 
-makedmg $Name-$VERSION $AppRoot /Applications/
+#makedmg $Name-$VERSION $AppRoot /Applications/
 #makedmg elldata $Build/data/elldata /Applications/PariGP.app/Contents/Resources/share/pari
-rm -rf $AppRoot
+#rm -rf $AppRoot
