@@ -1,46 +1,39 @@
 #!/bin/sh
-CLEAN=1
-
-# compile pari-gp
-VERSION=2.5.3
+CLEAN=0
+Build=$HOME/pari
+export CC=gcc-mp-4.7
+case $1 in 
+  -a) AllPackages=1; Name=PariGP;;
+   *) Name=PariGP-Tiny;;
+esac
 
 Here=$(pwd)
-
-Build=pari-2.5.3
-
-
 cd ${Build}
+. config/version
+VERSION=$VersionMajor.$VersionMinor.$patch
 
 # compile static version of pari for OSX
-LIBREADLINE=/usr/local/Cellar/readline/6.2.4/lib/libreadline.a
-LIBNCURSES=/usr/local/Cellar/ncurses/5.9/lib/libncursesw.a
-LIBGMP=/usr/local/Cellar/gmp/5.0.5/lib/libgmp.a
+LIBREADLINE=/opt/local/lib/libreadline.a
+LIBNCURSES=/opt/local/lib/libncurses.a
+LIBGMP=/opt/local/lib/libgmp.a
 
-export CC=/usr/local/bin/gcc-4.7
-
-# to avoid linking with libgcc_s.dylib
 export LDFLAGS=-static-libgcc
 
-# 1) --graphic=none: disable fltk, brings in too many dylib & frameworks
-# 2) use MacPorts'readline, avoid broken editline
-if [ $CLEAN = 1 ]; then
-  make clean
-  ./Configure --graphic=none --with-readline=/usr/local/Cellar/readline/6.2.4
-fi
+if [ $CLEAN = 1 ]; then make clean; fi
+./Configure --with-readline=/opt/local
 
 # override GMPLIBS/RLLIBS values to make sure we link with .a, not
 # dylibs. -static doesn't work
-cd Odarwin-i386 && make -j6 \
+(cd Odarwin-i386 && make -j6 \
   GMPLIBS=${LIBGMP}\
   RLLIBS="${LIBREADLINE} ${LIBNCURSES}"\
-  gp-sta
+  gp-sta)
 
-cd .. && make docpdf
+make docpdf
 
-# install into PariGP.app
+# install into $Name.app
 cd ${Here}
-AppRoot=PariGP.app
-Name=PariGP
+AppRoot=$Name.app
 Rundir=${AppRoot}/Contents/MacOS
 GPdir=${AppRoot}/Contents/Resources
 Bin=${GPdir}/bin
@@ -56,29 +49,32 @@ cp -f ${Build}/doc/*.{pdf,tex}  ${Doc}/
 cp -f ${Build}/doc/gp*  ${Doc}/
 cp -f ${Build}/doc/translations  ${Doc}/
 
-mkdir -p ${Extra}
-# ??? what needs to be here by default ?
+if test -n "$AllPackages"; then
+  mkdir -p ${Extra}
+  for d in `ls -d ${Build}/data/*`; do
+    cp -r $d $Extra
+  done
+  GP_DATA_DIR=\'\${ROOT}/share/pari\'
+else
+  GP_DATA_DIR='/Applications/PariGP.app/Contents/Resources/share/pari'
+fi
 
-## finish install : make os X app
-
+## finish install : make OS X app
 
 # launch script
 mkdir -p ${Rundir}
-
 cat <<EOF > ${Rundir}/${Name}
 #!/bin/sh
-ROOT="\$(cd "\$(dirname "\$0")" 2>/dev/null && pwd)/../Resources"
-#/usr/bin/env GPDOCDIR=\${ROOT}/doc GPHELP="\${ROOT}/doc/gphelp -d -ch 4 -cb 0 -cu 2" GP_DATA_DIR=\${ROOT}/share/pari \${ROOT}/bin/gp
+ROOT="\`dirname \$0\`/../Resources"
 osascript <<EOS
 tell app "Terminal"
   do script "export GPDOCDIR=\${ROOT}/doc
     export GPHELP='\${ROOT}/doc/gphelp -d -ch 4 -cb 0 -cu 2'
-    export GP_DATA_DIR=\${ROOT}/share/pari
+    export GP_DATA_DIR=$GP_DATA_DIR
     clear; \${ROOT}/bin/gp; exit"
 end tell
 EOS
 EOF
-
 chmod +x ${Rundir}/${Name}
 
 # Info.plist
@@ -88,32 +84,33 @@ cat <<EOF > ${AppRoot}/Contents/Info.plist
                        "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CFBundleExecutable</key>
-    <string>${Name}</string>
-    <key>CFBundleIdentifier</key>
-    <string>math.PariGP</string>
-    <key>CFBundleName</key>
-    <string>PariGP</string>
-    <key>CFBundleIconFile</key>
-    <string>PariGP.icns</string>
-    <key>CFBundleShortVersionString</key>
-    <string>${VERSION}</string>
-    <key>CFBundleSignature</key>
-    <string>pari</string>
-    <key>CFBundleVersion</key>
-    <string>${VERSION}</string>
-    <key>CFBundleInfoDictionaryVersion</key>
-    <string>6.0</string>
-    <key>CFBundlePackageType</key>
-    <string>APPL</string>
-  </dict>
+  <key>CFBundleExecutable</key>
+  <string>${Name}</string>
+  <key>CFBundleIdentifier</key>
+  <string>math.PariGP</string>
+  <key>CFBundleName</key>
+  <string>PariGP</string>
+  <key>CFBundleIconFile</key>
+  <string>PariGP.icns</string>
+  <key>CFBundleShortVersionString</key>
+  <string>${VERSION}</string>
+  <key>CFBundleSignature</key>
+  <string>pari</string>
+  <key>CFBundleVersion</key>
+  <string>${VERSION}</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+</dict>
 </plist>
 EOF
 # Icons
-iconfile=images/PariGP.icns
-if [ -f ${iconfile} ]; then
-  cp -f ${iconfile} ${AppRoot}/Contents/Resources/PariGP.icns
+iconfile=PariGP.icns
+if [ -f $iconfile ]; then
+  cp -f $iconfile $AppRoot/Contents/Resources/PariGP.icns
 fi
 
-echo "Done. Can now make dmg with"
-echo "sh makedmg PariGP-${VERSION} ${AppRoot} /Applications/"
+makedmg $Name-$VERSION $AppRoot /Applications/
+#makedmg elldata $Build/data/elldata /Applications/PariGP.app/Contents/Resources/share/pari
+rm -rf $AppRoot
