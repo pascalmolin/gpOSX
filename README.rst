@@ -14,7 +14,7 @@ Contains:
 Requirements:
 -------------
 
-- pari/GP sources in ``HOME/pari``::
+- pari/GP sources in ``HOME/pari``
 
   ::
     
@@ -31,7 +31,7 @@ Requirements:
     libncursesw.a
     libgmp.a
 
-All these can be installed with homebrew::
+All these can be installed with homebrew
 
 ::
   
