@@ -21,8 +21,8 @@ case `whoami` in
 esac
 
 case $1 in 
-  -a) AllPackages=1; Name=PariGP-full;;
-   *) Name=PariGP;;
+  -a) AllPackages=1; Name=PariGP;;
+   *) Name=PariGP-Tiny;;
 esac
 
 Here=$(pwd)
