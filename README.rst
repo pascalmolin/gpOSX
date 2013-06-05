@@ -51,14 +51,13 @@ Usage:
 
   ::
 
-    makedmg $Name-$VERSION $AppRoot /Applications/
+    makedmg PariGP-Tiny-2.6.1 PariGP.app /Applications/
 
 - make separate bundles for data directories
 
   ::
 
-    # makedmg <dmgname> <directory> <install-path>
-    makedmg $Name-elldata $HOME/pari/data/elldata /Applications/PariGP.app/Contents/Resources/share/pari
+    makedmg PariGP-data $HOME/pari/data /Applications/PariGP.app/Contents/Resources/share/pari
 
 
 Icons:
