@@ -76,7 +76,7 @@ if [ ${type} = "installer" ]; then
   rm -rf ${ROOT}
   cat <<-EOF | osacompile -o ${ROOT}
   try
-  set dmgpath to POSIX path of (path to resource "${LabelFrom}") 
+    set dmgpath to POSIX path of (path to resource "${LabelFrom}") 
     -- go around stupid cp -R behaviour
     if dmgpath ends with "/" then
       set dmgpath to text 1 thru -2 of dmgpath
@@ -95,7 +95,7 @@ EOF
   # add the data inside
   RESOURCES=${ROOT}/Contents/Resources
   echo "0.1 add data from ${FROM}"
-  cp -r ${FROM} ${RESOURCES}/
+  cp -R ${FROM} ${RESOURCES}/
   
   if [ -e ${iconfile} ]; then
     # also change the icon for Pari
@@ -156,10 +156,20 @@ tell application "Finder"
     set arrangement of theViewOptions to not arranged
     set icon size of theViewOptions to 72
     ${bcom}set background picture of theViewOptions to file ".background:install.png"
-    ${icom}set position of item "${LabelFrom}" of container window to {200, 110}
-    ${dcom}set position of item "${LabelFrom}" of container window to {80, 110}
-    ${dcom}make new alias file at container window to POSIX file "${TO}" with properties {name:"${LabelTo}"}
-    ${dcom}set position of item "${LabelTo}" of container window to {320, 110}
+    try
+      ${icom}set position of item "${LabelFrom}" of container window to {200, 110}
+      ${dcom}set position of item "${LabelFrom}" of container window to {80, 110}
+    on error
+      tell me to activate
+      display dialog "${LabelFrom} not found"
+    end try
+    try
+      ${dcom}make new alias file at container window to POSIX file "${TO}" with properties {name:"${LabelTo}"}
+      ${dcom}set position of item "${LabelTo}" of container window to {320, 110}
+    on error
+      tell me to activate
+      display dialog "Warning: unable to make link to ${TO}"
+    end try
     update without registering applications
     delay 5
     -- eject
