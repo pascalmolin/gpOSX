@@ -11,6 +11,8 @@ Contains:
 - ``makedmg`` a shell script which creates a .dmg installer from any directory
   (in particular the PariGP.app created above).
 
+- ``makeIcons`` script to create a iconset file from master svg.
+
 Requirements:
 -------------
 
