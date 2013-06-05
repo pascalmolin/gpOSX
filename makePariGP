@@ -1,10 +1,28 @@
 #!/bin/sh
 CLEAN=0
-Build=$HOME/devel/pari
-export CC=/usr/local/bin/gcc-4.7
+
+case `whoami` in
+  pascal)
+    Build=$HOME/devel/pari
+    export CC=/usr/local/bin/gcc-4.7
+    LIBREADLINE=/usr/local/Cellar/readline/6.2.4/lib/libreadline.a
+    READLINE=/usr/local/Cellar/readline/6.2.4
+    LIBNCURSES=/usr/local/Cellar/ncurses/5.9/lib/libncursesw.a
+    LIBGMP=/usr/local/Cellar/gmp/5.0.5/lib/libgmp.a
+    ;;
+  *)
+    Build=$HOME/pari
+    export CC=gcc-mp-4.7
+    READLINE=/opt/local
+    LIBREADLINE=/opt/local/lib/libreadline.a
+    LIBNCURSES=/opt/local/lib/libncurses.a
+    LIBGMP=/opt/local/lib/libgmp.a
+    ;;
+esac
+
 case $1 in 
-  -a) AllPackages=1; Name=PariGP;;
-   *) Name=PariGP-Tiny;;
+  -a) AllPackages=1; Name=PariGP-full;;
+   *) Name=PariGP;;
 esac
 
 Here=$(pwd)
@@ -13,15 +31,11 @@ cd ${Build}
 VERSION=$VersionMajor.$VersionMinor.$patch
 
 # compile static version of pari for OSX
-LIBREADLINE=/usr/local/Cellar/readline/6.2.4/lib/libreadline.a
-LIBNCURSES=/usr/local/Cellar/ncurses/5.9/lib/libncursesw.a
-LIBGMP=/usr/local/Cellar/gmp/5.0.5/lib/libgmp.a
 
 export LDFLAGS=-static-libgcc
 
 if [ $CLEAN = 1 ]; then make clean; fi
-#./Configure --with-readline=/opt/local
-./Configure --graphic=none --with-readline=/usr/local/Cellar/readline/6.2.4
+./Configure --graphic=none --with-readline=${READLINE}
 
 # override GMPLIBS/RLLIBS values to make sure we link with .a, not
 # dylibs. -static doesn't work
@@ -114,6 +128,13 @@ if [ -f $iconfile ]; then
   cp -f $iconfile $AppRoot/Contents/Resources/PariGP.icns
 fi
 
-#makedmg $Name-$VERSION $AppRoot /Applications/
-#makedmg elldata $Build/data/elldata /Applications/PariGP.app/Contents/Resources/share/pari
+echo
+echo "Build completed:"
+echo "  $AppRoot successfully created."
+echo
+echo "to make dmg run"
+echo "  makedmg $Name-$VERSION $AppRoot /Applications/"
+echo
+echo "to make data dmg run"
+echo "  makedmg $Name-elldata $Build/data/elldata $GP_DATA_DIR"
 #rm -rf $AppRoot
