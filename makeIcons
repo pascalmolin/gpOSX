@@ -1,0 +1,39 @@
+#!/bin/sh
+
+svgfile=images/icon.svg
+svgid=PariGPicon
+icondir=PariGP.iconset
+out=PariGP.icns
+
+INKSCAPE=/Applications/Inkscape.app/Contents/Resources/bin/inkscape
+
+mkdir -p $ICONDIR
+
+# create many different resolutions png
+
+for i in {16,32,64,128,256,512,1024}; do
+  ${INKSCAPE} \
+  --without-gui \
+  --export-id=${svgid} \
+  --export-png=icon_$i.png \
+  --export-width=$i \
+  ${svgfile};
+done;
+
+# correct names: icon_1024x1024.png must be named icon_512x512@2.png
+
+for i in {16,32,128,256,512}; do
+  cp icon_${i}.png ${icondir}/icon_${i}x${i}.png && \
+  cp icon_$((2*i)).png ${icondir}/icon_${i}x${i}@2x.png;
+done;
+
+
+# make .icns iconfile
+
+iconutil -c icns -o ${out} ${icondir}
+
+# clean
+
+rm icon_*.png
+#rm -rf ${icondir}
+
