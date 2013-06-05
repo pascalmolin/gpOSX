@@ -20,9 +20,10 @@ case `whoami` in
     ;;
 esac
 
+Name=PariGP
 case $1 in 
-  -a) AllPackages=1; Name=PariGP;;
-   *) Name=PariGP-Tiny;;
+  -a) AllPackages=1; DMGName=PariGP;;
+   *) DMGName=PariGP-Tiny;;
 esac
 
 Here=$(pwd)
@@ -64,8 +65,8 @@ cp -f ${Build}/doc/*.{pdf,tex}  ${Doc}/
 cp -f ${Build}/doc/gp*  ${Doc}/
 cp -f ${Build}/doc/translations  ${Doc}/
 
+mkdir -p ${Extra} # need in any case
 if test -n "$AllPackages"; then
-  mkdir -p ${Extra}
   for d in `ls -d ${Build}/data/*`; do
     cp -r $d $Extra
   done
@@ -133,8 +134,11 @@ echo "Build completed:"
 echo "  $AppRoot successfully created."
 echo
 echo "to make dmg run"
-echo "  makedmg $Name-$VERSION $AppRoot /Applications/"
-echo
-echo "to make data dmg run"
-echo "  makedmg $Name-elldata $Build/data/elldata $GP_DATA_DIR"
+echo "  makedmg $DMGName-$VERSION $AppRoot /Applications/"
+
+if [[ ! $AllPackages ]]; then
+  echo
+  echo "to make data dmg run"
+  echo "  makedmg $Name-data $Build/data $GP_DATA_DIR"
+fi
 #rm -rf $AppRoot
