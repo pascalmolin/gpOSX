@@ -36,7 +36,7 @@ VERSION=$VersionMajor.$VersionMinor.$patch
 export LDFLAGS=-static-libgcc
 
 if [ $CLEAN = 1 ]; then make clean; fi
-./Configure --graphic=none --with-readline=${READLINE}
+./Configure --graphic=ps --with-readline=${READLINE}
 
 # override GMPLIBS/RLLIBS values to make sure we link with .a, not
 # dylibs. -static doesn't work
