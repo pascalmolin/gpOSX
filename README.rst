@@ -13,6 +13,8 @@ Contains:
 
 - ``makeIcons`` script to create a iconset file from master svg.
 
+- a small ``gprc`` file
+
 Requirements:
 -------------
 

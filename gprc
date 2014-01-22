@@ -1,0 +1,17 @@
+\\ history file to keep previous session
+histfile = "~/.gp_history"
+
+prompt = "(%H:%M) \e[1mgp\e[m > "
+#if READL prompt = "(%H:%M) \e[1mgp\e[m > "
+#if EMACS prompt = "? "
+
+#ifnot EMACS help = "/usr/local/bin/gphelp -detex -ch 4 -cb 0 -cu 2"
+
+\\ Stack size : 10^7 Bytes.
+parisize = 32M
+
+\\ Biggest precomputed prime (= prevprime(10^6))
+\\primelimit = 1M
+
+\\ Set timer on
+timer = 1
